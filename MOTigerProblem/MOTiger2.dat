@@ -1,0 +1,66 @@
+//------------------------------------------------------------------------ *
+// libpomdp
+// ========
+// File: tiger.95.SPUDD
+// Description: encoding of the tiger problem in SPUDD to be
+//              parsed by Poupart's parsePOMDP class, included in the
+//              Symbolic Perseus package - see README reference [5]
+// Copyright (c) 2009, 2010 Diego Maniloff 
+// W3: http://www.cs.uic.edu/~dmanilof
+//--------------------------------------------------------------------------- *
+
+// variables
+// ---------
+(variables 
+ (tiger_location tiger_left tiger_right ))
+
+// observations
+// ------------
+(observations 
+ (growl growl_left growl_right))
+
+// initial belief state (has to be a product of marginals!)
+// --------------------------------------------------------
+init (tiger_location (tiger_left (1)) (tiger_right (0))) //the initial belief reflected in the probability of observation thats why we put 1 and 0, initially it was 0.5
+
+// actions
+// -------
+action listen
+    tiger_location (SAMEtiger_location)
+    //tiger_location (tiger_location' (tiger_left (0.5)) (tiger_right (0.5)))
+    //tiger_location (tiger_location' (tiger_left (0.5)) (tiger_right (0.5)) (terminal (0)))
+    observe
+       growl (tiger_location' (tiger_left  (growl' (growl_left  (0.85))
+						    (growl_right (0.15))))
+			       (tiger_right (growl' (growl_left  (0.15))
+						    (growl_right (0.85)))))
+    endobserve
+    costobjective (1 0)
+
+endaction
+
+action open_left
+    tiger_location (tiger_location' (tiger_left (0.5)) (tiger_right (0.5)))
+    observe
+        growl (growl' (growl_left  (0.5))
+		      (growl_right (0.5)))
+    endobserve
+    costobjective (tiger_location (tiger_left  (100 0))
+				  (tiger_right (-10 0)))
+endaction
+
+action open_right
+    tiger_location (tiger_location' (tiger_left (0.5)) (tiger_right (0.5)))
+    observe
+        growl (growl' (growl_left  (0.5))
+		      (growl_right (0.5)))
+    endobserve
+    costobjective (tiger_location (tiger_left (-10 0))
+				  (tiger_right  (100 0)))
+endaction
+
+// discount factor
+discount  0.95
+
+// tolerance ??
+tolerance 0.001 
