@@ -2848,13 +2848,14 @@ public class POMDP implements Serializable {
 	    	 * May 2018
 	    	 * scalarize the costs 
 	    	 */
-	    	if(actions[actId].costObj.getChildren().length>1)//its not just a leaf
+	    	//if(actions[actId].costObj.getChildren().length>1)//its not just a leaf
+	    	if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
 	    	{
 	    		for(int u=0;u<actions[actId].costObj.getChildren().length;u++)//for every child
 	    		{
 	    			if(actions[actId].costObj.getChildren()[u].getChildren()!=null)//child is not a leaf
 	    			{
-	    				//scalarize
+	    				//scalarize- node with 2 leafs
 	    				actions[actId].costObj.getChildren()[u]=scalarizeAlphaMatrix(actions[actId].costObj.getChildren()[u]);
 	    			}
 	    		}

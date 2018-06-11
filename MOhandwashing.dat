@@ -113,9 +113,9 @@ action nothing
        observe  
             handpos	(handPosCPT)
        endobserve
-       costobjective 	(aware		(no	(0 0))
-					(yes	(0 0)))
+       costobjective	(1 0)
 endaction
+
 action wet_hands
        planstep	(planstepdd)
        aware	(SAMEaware)
