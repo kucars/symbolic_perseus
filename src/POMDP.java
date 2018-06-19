@@ -11,6 +11,7 @@ public class POMDP implements Serializable {
 	//double [] weights = {1,0};
 	DD w1dd = DD.zero;
 	DD w2dd = DD.zero;
+	DD w3dd = DD.zero;
 	static DD[] ddweights = new DD[1];
 	
     public  DD [][]alphaVectors_2D; //---------> new variable 
@@ -713,6 +714,7 @@ public class POMDP implements Serializable {
     	
     w[0]=1;
     w[1]=0;
+    w[2]=0;
     
     // i need to try other weights to test the scalarization function 
     //w[0]= 0;
@@ -820,14 +822,20 @@ public class POMDP implements Serializable {
 	{
 		w1dd=d;
 		w2dd=d;
+		w3dd=d;
 	}else
 	{
 	 w1dd = d.getChildren()[0]; //w1dd.display();//DD of w1
 	 w2dd = d.getChildren()[1]; //w2dd.display();//DD of w2
+	 w3dd = d.getChildren()[2];
 	}
 	 //System.exit(200);
 	//----------Step 3: scalarize from multiple objective into one objective------------
-
+	DD []childs = new DD[3];
+	childs[0]=DDleaf.myNew(1);
+	childs[1]=DDleaf.myNew(1);
+	childs[2]=DDleaf.myNew(1);
+	rawpomdp.reward =DDnode.myNew(1, childs);
 	 //multiply and add 
 	costObjectivesDDarray = new DD [nActions];
 	for (int a=0; a<nActions; a++) {
@@ -1790,9 +1798,10 @@ public class POMDP implements Serializable {
     {
     	//--------test weights----------------
     	DD[] ddweights = new DD[1];
-    	DD[] children_w = new DD[2];
+    	DD[] children_w = new DD[3];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
+    	children_w[2] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;
 		//------------------------------------

@@ -87,7 +87,7 @@ action nothing
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(1 0 0)
 endaction
 action measurewet
 	huc	(defaulthuc)
@@ -104,7 +104,7 @@ action measurewet
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(1 0 0)
 endaction
 // move to shop if in office and vice-versa
 // robot can get wet along the way if its raining and robot has no umbrella
@@ -161,9 +161,8 @@ action move
 		charge	(batteryOF)
 	endobserve
 	// a cost specified over post-action variables
-	//costobjective	(1 0)
-	costobjective	(l	(office	(0.0 0))
-				(shop	(0.1 0.0)))
+	costobjective	(l	(office	(0.0 0 0))
+				(shop	(0.1 0.0 0)))
 endaction
 // robot delivers coffee to user
 action delc
@@ -184,7 +183,7 @@ action delc
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(1 0 0)
 endaction
 // robot gets the umbrella
 action getu
@@ -201,8 +200,8 @@ action getu
 		wetp	(evenwetp)
 		charge	(batteryOF)
 	endobserve
-	costobjective	(l	(office	(1.6 0))
-				(shop	(0.0 0)))
+	costobjective	(l	(office	(1.6 0 0))
+				(shop	(0.0 0 0)))
 endaction
 // robot buys coffee carefully
 // this only works if the robot's in the shop
@@ -229,8 +228,8 @@ action buyc_careful
 		wetp	(evenwetp)
 		charge	(batteryOF)
 	endobserve
-	costobjective 	(l	(office	(0.0 0))
-				(shop	(0.3 0)))
+	costobjective 	(l	(office	(0.0 0 0))
+				(shop	(0.3 0 0)))
 endaction
 // robot buys coffee quickly
 // again, this only works if the robot's in the shop
@@ -256,8 +255,8 @@ action buyc_fast
 		wetp	(evenwetp)
 		charge	(batteryOF)
 	endobserve
-	costobjective 	(l	(office	(0.0 0))
-				(shop	(0.1 0)))
+	costobjective 	(l	(office	(0.0 0 0))
+				(shop	(0.1 0 0)))
 endaction
 // recharge the battery
 action recharge
@@ -274,7 +273,7 @@ action recharge
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(1 0 0)
 endaction	
 action dryoff
 	huc	(defaulthuc)
@@ -295,13 +294,13 @@ action dryoff
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(1 0 0)
 endaction
 
-//reward [+  (huc	(yes	(5.0 0))
-//		(no	(0.0 0)))
-//	   (w	(drenched (-3.0 0))
-//		(sprinkled (-1.1 0))
-//		(dry	(0.0 0)))]
+//reward [+  (huc	(yes	(5.0))
+//		(no	(0.0)))
+//	   (w	(drenched (-3.0))
+//		(sprinkled (-1.1))
+//		(dry	(0.0)))]
 discount 0.9
 tolerance 0.001
