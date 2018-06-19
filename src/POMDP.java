@@ -833,8 +833,8 @@ public class POMDP implements Serializable {
 	//----------Step 3: scalarize from multiple objective into one objective------------
 	DD []childs = new DD[3];
 	childs[0]=DDleaf.myNew(1);
-	childs[1]=DDleaf.myNew(1);
-	childs[2]=DDleaf.myNew(1);
+	childs[1]=DDleaf.myNew(0);
+	childs[2]=DDleaf.myNew(0);
 	rawpomdp.reward =DDnode.myNew(1, childs);
 	 //multiply and add 
 	costObjectivesDDarray = new DD [nActions];
