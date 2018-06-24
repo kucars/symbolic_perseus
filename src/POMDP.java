@@ -1808,19 +1808,21 @@ public class POMDP implements Serializable {
      */
     public static DD scalarizeAlphaMatrix(DD AlphaMatrix)
     {
-    	//--------test weights----------------
+    	/*---------------------------------------------------
+    	 * test weights ONLY used when running TestMain.java
+    	 * Otherwise should be commented
+    	 */
     	DD[] ddweights = new DD[1];
     	DD[] children_w = new DD[2];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;
-		//------------------------------------
-		List<DD> myList = new ArrayList<DD>();		
+		//------------end part used for testing--------------
 		
+		List<DD> myList = new ArrayList<DD>();		
     	DD scalarizedAlphas = DD.zero;
     	DD[] children = AlphaMatrix.getChildren();
-    	
     	DD resultAdd = DD.zero; 
     	
     	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
@@ -1871,20 +1873,21 @@ public class POMDP implements Serializable {
     //---------------recursiveScalarizeMatrix--------------------------------- 
     public static DD recursiveScalarizeMatrix(DD matrix)
     {
-
-    	//--------test weights----------------
+    	/*---------------------------------------------------
+    	 * test weights ONLY used when running TestMain.java
+    	 * Otherwise should be commented
+    	 */
     	DD[] ddweights = new DD[1];
     	DD[] children_w = new DD[2];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;
-		//------------------------------------
-		List<DD> myList = new ArrayList<DD>();		
+		//------------end part used for testing--------------
 		
+		List<DD> myList = new ArrayList<DD>();		
     	DD scalarizedAlphas = DD.zero;
     	DD[] children = matrix.getChildren();
-    	
     	DD resultAdd = DD.zero; 
     	
     	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
@@ -1893,17 +1896,25 @@ public class POMDP implements Serializable {
     		{
     			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
     			{ 		
-    				if (children[we].getChildren()!=null) //2 nodes and each node with 2 leafs
+    				if (children[we].getChildren()!=null) 
     				{
-    					resultAdd = DD.zero; 
+    					//2 nodes and each node with 2 leafs
+    					/*resultAdd = DD.zero; 
     					for (int a=0;a<children[we].getChildren().length;a++)
     					{
     						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
     						resultAdd = OP.add(resultAdd, resultdd);
-    					}
+    					}*/
     					
-    				}else //1 node with 2 leafs
+    					/*
+    					 * i could comment upper part and just call the function recursevly here until what left is only leafs
+    					 * in the else part
+    					 */
+    					resultAdd = recursiveScalarizeMatrix(children[we]);
+    					
+    				}else 
     				{
+    					//1 node with 2 leafs
     					DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
     					resultAdd = OP.add(resultAdd, resultdd);
     				}
