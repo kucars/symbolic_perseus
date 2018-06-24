@@ -469,15 +469,17 @@ public class TestMain {
 		///////////////////////////////////////////////////////////////////////////////
 		// scalarize - DD scalarizeAlphaMatrix(DD AlphaMatrix)
 		///////////////////////////////////////////////////////////////////////////////
-		/*System.out.println("scalarizing: ");
-		
-		DD scalarized = POMDP.scalarizeAlphaMatrix(dd3.getChildren()[0]);
+		System.out.println("scalarizing: ");
+		/*DD scalarized = POMDP.scalarizeAlphaMatrix(dd3.getChildren()[0]);
 		System.out.println("printing scalarized first node");
 		scalarized.display();
 		scalarized = POMDP.scalarizeAlphaMatrix(dd3.getChildren()[1]);
 		System.out.println("printing scalarized second node");
 		scalarized.display();*/
 		 
+		DD scalarized = POMDP.scalarizeAlphaMatrix(dd3);
+		System.out.println("printing scalarized");
+		scalarized.display();
 		
 	}//end main()
 

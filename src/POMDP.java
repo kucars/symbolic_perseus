@@ -1808,7 +1808,6 @@ public class POMDP implements Serializable {
      */
     public static DD scalarizeAlphaMatrix(DD AlphaMatrix)
     {
-
     	//--------test weights----------------
     	DD[] ddweights = new DD[1];
     	DD[] children_w = new DD[2];
@@ -1817,27 +1816,29 @@ public class POMDP implements Serializable {
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;
 		//------------------------------------
+		List<DD> myList = new ArrayList<DD>();		
 		
     	DD scalarizedAlphas = DD.zero;
     	DD[] children = AlphaMatrix.getChildren();
-    	DD[] children_scalarized = new DD[1];// size should be  generalized  
-		
-    	DD resultAdd = DD.zero; 
-    	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
-		{	
     	
+    	DD resultAdd = DD.zero; 
+    	
+    	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
+		{	  		  		
     		if(children.length==ddweights[0].getChildren().length)
     		{
     			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
     			{ 		
-    				if (children[we].getChildren()!=null) //
+    				if (children[we].getChildren()!=null) //2 nodes and each node with 2 leafs
     				{
+    					resultAdd = DD.zero; 
     					for (int a=0;a<children[we].getChildren().length;a++)
     					{
-    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[we]);
+    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
     						resultAdd = OP.add(resultAdd, resultdd);
     					}
-    				}else
+    					
+    				}else //1 node with 2 leafs
     				{
     					DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
     					resultAdd = OP.add(resultAdd, resultdd);
@@ -1848,22 +1849,87 @@ public class POMDP implements Serializable {
     				DD resultdd = OP.mult(children[we], ddweights[0]);
 					resultAdd = OP.add(resultAdd, resultdd);
     			}
-    			
-    			children_scalarized[0]=resultAdd;
-        		scalarizedAlphas = DDnode.myNew(1, children_scalarized);
-        		int [] n1 = scalarizedAlphas.getVarSet();
+    			myList.add(resultAdd);
     			
     		}else if(children.length>ddweights[0].getChildren().length)
     		{
-    			children_scalarized[0]=AlphaMatrix;
-        		scalarizedAlphas = DDnode.myNew(1, children_scalarized);
-        		int [] n1 = scalarizedAlphas.getVarSet();
+    			myList.add(AlphaMatrix);
     		}
     		
-		}// end for weights 
+		}// end loop weights 
+    	
+    	DD[] children_scalarized = new DD[myList.size()];
+    	for(int x=0; x<myList.size();x++)
+    	{
+    		children_scalarized[x]=myList.get(x);
+    	}
+    	scalarizedAlphas = DDnode.myNew(1, children_scalarized);
 	
     	return scalarizedAlphas;
 
+    }
+    //---------------recursiveScalarizeMatrix--------------------------------- 
+    public static DD recursiveScalarizeMatrix(DD matrix)
+    {
+
+    	//--------test weights----------------
+    	DD[] ddweights = new DD[1];
+    	DD[] children_w = new DD[2];
+    	children_w[0] = DDleaf.myNew(1);
+    	children_w[1] = DDleaf.myNew(0);
+		DD dd1 = DDnode.myNew(1, children_w);
+		ddweights[0]=dd1;
+		//------------------------------------
+		List<DD> myList = new ArrayList<DD>();		
+		
+    	DD scalarizedAlphas = DD.zero;
+    	DD[] children = matrix.getChildren();
+    	
+    	DD resultAdd = DD.zero; 
+    	
+    	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
+		{	  		  		
+    		if(children.length==ddweights[0].getChildren().length)
+    		{
+    			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
+    			{ 		
+    				if (children[we].getChildren()!=null) //2 nodes and each node with 2 leafs
+    				{
+    					resultAdd = DD.zero; 
+    					for (int a=0;a<children[we].getChildren().length;a++)
+    					{
+    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
+    						resultAdd = OP.add(resultAdd, resultdd);
+    					}
+    					
+    				}else //1 node with 2 leafs
+    				{
+    					DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
+    					resultAdd = OP.add(resultAdd, resultdd);
+    				}
+    			}else// if the weights are the same it will be only one leaf 
+    			{
+    				//weights are the same so one leaf
+    				DD resultdd = OP.mult(children[we], ddweights[0]);
+					resultAdd = OP.add(resultAdd, resultdd);
+    			}
+    			myList.add(resultAdd);
+    			
+    		}else if(children.length>ddweights[0].getChildren().length)
+    		{
+    			myList.add(matrix);
+    		}
+    		
+		}// end loop weights 
+    	
+    	DD[] children_scalarized = new DD[myList.size()];
+    	for(int x=0; x<myList.size();x++)
+    	{
+    		children_scalarized[x]=myList.get(x);
+    	}
+    	scalarizedAlphas = DDnode.myNew(1, children_scalarized);
+	
+    	return scalarizedAlphas;
     }
     //---------------scalarize_alphavector_withMultipleObjectives-----------------
     /*
