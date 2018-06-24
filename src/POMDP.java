@@ -714,7 +714,7 @@ public class POMDP implements Serializable {
     	
     w[0]=1;
     w[1]=0;
-    w[2]=0;
+    //w[2]=0;
     
     // i need to try other weights to test the scalarization function 
     //w[0]= 0;
@@ -822,20 +822,23 @@ public class POMDP implements Serializable {
 	{
 		w1dd=d;
 		w2dd=d;
-		w3dd=d;
+		//w3dd=d;
 	}else
 	{
 	 w1dd = d.getChildren()[0]; //w1dd.display();//DD of w1
 	 w2dd = d.getChildren()[1]; //w2dd.display();//DD of w2
-	 w3dd = d.getChildren()[2];
+	 //w3dd = d.getChildren()[2];
 	}
 	 //System.exit(200);
 	//----------Step 3: scalarize from multiple objective into one objective------------
-	DD []childs = new DD[3];
+	DD []childs = new DD[2];
 	childs[0]=DDleaf.myNew(1);
 	childs[1]=DDleaf.myNew(0);
-	childs[2]=DDleaf.myNew(0);
+	//childs[2]=DDleaf.myNew(-5);
 	rawpomdp.reward =DDnode.myNew(1, childs);
+	System.out.println("size rewardObjectives:" +rawpomdp.rewardObjectives.size());
+	rawpomdp.rewardObjectives.firstElement().display();
+	//System.exit(200);
 	 //multiply and add 
 	costObjectivesDDarray = new DD [nActions];
 	for (int a=0; a<nActions; a++) {
@@ -851,9 +854,18 @@ public class POMDP implements Serializable {
 	    actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,primeVarIndices);
 	    
 	    //----added this part to save the not scalarized reward matrix---used to be in dpBackup
-	    actions[a].costObj=OP.sub(rawpomdp.reward,rawpomdp.CostObjectives.get(a));
+	    System.out.println("rewardObjectives:");
+	    rawpomdp.rewardObjectives.firstElement().display();
+	    System.out.println("CostObjectives:");
+	    rawpomdp.CostObjectives.get(a).display();
+	    
+	    actions[a].costObj=OP.sub(rawpomdp.rewardObjectives.firstElement(),rawpomdp.CostObjectives.get(a));
+	    System.out.println("costObj:");
+	    actions[a].costObj.display();
 	    actions[a].buildcostObjTranFn();
 	    actions[a].costObj= OP.addMultVarElim(actions[a].costObjTransFn,primeVarIndices);
+	    System.out.println("costObj:");
+	    actions[a].costObj.display();
 	    //actions[a].costObj.setVar(1);
 	    //actions[a].costObj.getVarSet();
  
@@ -1796,16 +1808,16 @@ public class POMDP implements Serializable {
      */
     public static DD scalarizeAlphaMatrix(DD AlphaMatrix)
     {
+
     	//--------test weights----------------
     	DD[] ddweights = new DD[1];
-    	DD[] children_w = new DD[3];
+    	DD[] children_w = new DD[2];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
-    	children_w[2] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;
 		//------------------------------------
-    
+		
     	DD scalarizedAlphas = DD.zero;
     	DD[] children = AlphaMatrix.getChildren();
     	DD[] children_scalarized = new DD[1];// size should be  generalized  
@@ -1817,27 +1829,22 @@ public class POMDP implements Serializable {
     		if(children.length==ddweights[0].getChildren().length)
     		{
     			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
-    			{ 					
-    					if ( children[we].getChildren()!=null) //
+    			{ 		
+    				if (children[we].getChildren()!=null) //
+    				{
+    					for (int a=0;a<children[we].getChildren().length;a++)
     					{
-    						for (int a=0;a<children[we].getChildren().length;)
-    						{
-    							//DD weight = ddweights[0].getChildren()[l]; 
-    							//DD column = children[l];
-    							DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[we]);
-    							resultAdd = OP.add(resultAdd, resultdd);
-    						}
-    					}else
-    					{
-    						DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
+    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[we]);
     						resultAdd = OP.add(resultAdd, resultdd);
     					}
-    					//resultAdd.display();       			
-        			
+    				}else
+    				{
+    					DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
+    					resultAdd = OP.add(resultAdd, resultdd);
+    				}
     			}else// if the weights are the same it will be only one leaf 
     			{
     				//weights are the same so one leaf
-    				
     				DD resultdd = OP.mult(children[we], ddweights[0]);
 					resultAdd = OP.add(resultAdd, resultdd);
     			}
@@ -1853,7 +1860,7 @@ public class POMDP implements Serializable {
         		int [] n1 = scalarizedAlphas.getVarSet();
     		}
     		
-		}	// end for weights 
+		}// end for weights 
 	
     	return scalarizedAlphas;
 
@@ -2836,6 +2843,7 @@ public class POMDP implements Serializable {
 	    	 * May 2018
 	    	 * 2nd modification: will check the newalpha if has two nested nodes will make children nodes var = 1 just parent 3
 	    	 */    	
+	    	System.out.println("actionID:"+actId+" i:"+i);
 	    	newAlpha = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlpha),primeVarIndices);
 	    	/*
 	    	 * May 2018
@@ -2865,7 +2873,10 @@ public class POMDP implements Serializable {
 	    			if(actions[actId].costObj.getChildren()[u].getChildren()!=null)//child is not a leaf
 	    			{
 	    				//scalarize- node with 2 leafs
+	    				actions[actId].costObj.getChildren()[u].display();
 	    				actions[actId].costObj.getChildren()[u]=scalarizeAlphaMatrix(actions[actId].costObj.getChildren()[u]);
+	    				actions[actId].costObj.getChildren()[u].display();
+	    				//System.exit(200);
 	    			}
 	    		}
 	    	}

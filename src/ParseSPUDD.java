@@ -17,6 +17,8 @@ public class ParseSPUDD {
     public Vector<DD> CostObjectives;
     public Vector<DD> adjuncts;
     public DD reward;
+    public Vector<DD> rewardV;
+    public Vector<DD> rewardObjectives;
     public DD init;
     public DD discount;
     public DD tolerance;
@@ -35,7 +37,9 @@ public class ParseSPUDD {
     	actTransitions = new Vector<DD[]>();
     	actObserve = new Vector<DD[]>();
     	actCosts = new Vector<DD>();
+    	rewardV = new Vector<DD>();
     	CostObjectives = new Vector<DD>();
+    	rewardObjectives = new Vector<DD>();
     	adjuncts = new Vector<DD>();
     	adjunctNames = new Vector<String>();
     	discount = null;
@@ -411,7 +415,7 @@ public class ParseSPUDD {
 			    				//System.out.println("----------------------------print from parseSPUDD");
 			    				//dd.display(); 
 			    				a.add(dd);
-			    				if (stream.nextToken() != ')') error("Expected ')'");
+			    				if (stream.nextToken() != ')') error("Expected ')'"); // it only would take two objectives and expect )
 			    			}else
 			    			{		    				    			
 				    			DD[] children = a.toArray(new DD[a.size()]);
@@ -713,7 +717,23 @@ public class ParseSPUDD {
     }
 //--------parseReward-------------------------------------
     public void parseReward() {
-	reward = OP.reorder(parseDD());//---------------------------------->> fill reward 
+	//reward = OP.reorder(parseDD());//---------------------------------->> fill reward 
+	
+	DD d=parseDD();
+	DD dd = OP.reorderCost(d);
+
+	int s=0;
+	if(rewardObjectives==null || rewardObjectives.isEmpty()){
+		s=0;
+	}else{
+		s=rewardObjectives.size();
+	}
+
+	//costObjective.addCostObjective(actNames.get(actNames.size()-1), dd.getChildren());
+	rewardObjectives.add(s,dd);
+	System.out.println("parseReward");
+	//System.exit(200);
+	
     }
 //--------parseInit--------------------------------
     public void parseInit() {

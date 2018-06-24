@@ -30,6 +30,13 @@ public class TestMain {
 		dd3.getVarSet();
 		System.out.println("DD3");dd3.display();
 		
+		//DD4
+		DD[] children_dd4 = new DD[2];
+		children_dd4[0] = dd3;
+		children_dd4[1] = dd1;
+		DD dd4 = DDnode.myNew(4, children_dd4);
+		dd4.getVarSet();
+		System.out.println("DD4");dd4.display();
 		/*
 		 * test OP functions 
 		 */
@@ -462,13 +469,14 @@ public class TestMain {
 		///////////////////////////////////////////////////////////////////////////////
 		// scalarize - DD scalarizeAlphaMatrix(DD AlphaMatrix)
 		///////////////////////////////////////////////////////////////////////////////
-		System.out.println("scalarizing: ");
+		/*System.out.println("scalarizing: ");
+		
 		DD scalarized = POMDP.scalarizeAlphaMatrix(dd3.getChildren()[0]);
 		System.out.println("printing scalarized first node");
 		scalarized.display();
 		scalarized = POMDP.scalarizeAlphaMatrix(dd3.getChildren()[1]);
 		System.out.println("printing scalarized second node");
-		scalarized.display();
+		scalarized.display();*/
 		 
 		
 	}//end main()

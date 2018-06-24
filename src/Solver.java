@@ -20,7 +20,7 @@ class Solver implements Serializable {
     public static boolean simulate=false;
     public static boolean havepolicy=false;
     public static int nits=100;
-    public static double [] w={1,0,0};
+    public static double [] w={1,0};
     
 
     public static void usage() {
