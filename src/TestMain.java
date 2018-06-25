@@ -12,15 +12,15 @@ public class TestMain {
 		children_dd1[1] = DDleaf.myNew(2);
 		//children_dd1[2] = DDleaf.myNew(3);
 		DD dd1 = DDnode.myNew(1, children_dd1);
-		System.out.println("DD1");dd1.display(); 
+		//System.out.println("DD1");dd1.display(); 
 		
 		//DD2
 		DD[] children_dd2 = new DD[2];
-		children_dd2[0] = DDleaf.myNew(4);
-		children_dd2[1] = DDleaf.myNew(5);
+		children_dd2[0] = DDleaf.myNew(3);
+		children_dd2[1] = DDleaf.myNew(4);
 		//children_dd2[2] = DDleaf.myNew(6);
 		DD dd2 = DDnode.myNew(2, children_dd2);
-		System.out.println("DD2");dd2.display(); 
+		//System.out.println("DD2");dd2.display(); 
 
 		//DD3
 		DD[] children_dd3 = new DD[2];
@@ -28,15 +28,59 @@ public class TestMain {
 		children_dd3[1] = dd2;
 		DD dd3 = DDnode.myNew(3, children_dd3);
 		dd3.getVarSet();
-		System.out.println("DD3");dd3.display();
+		//System.out.println("DD3");dd3.display();
+		
 		
 		//DD4
 		DD[] children_dd4 = new DD[2];
-		children_dd4[0] = dd3;
-		children_dd4[1] = dd1;
-		DD dd4 = DDnode.myNew(4, children_dd4);
-		dd4.getVarSet();
-		System.out.println("DD4");dd4.display();
+		children_dd4[0] = DDleaf.myNew(5);
+		children_dd4[1] = DDleaf.myNew(6);
+		DD dd4 = DDnode.myNew(1, children_dd4);
+		//System.out.println("DD4");dd4.display(); 
+		
+		//DD5
+		DD[] children_dd5 = new DD[2];
+		children_dd5[0] = DDleaf.myNew(7);
+		children_dd5[1] = DDleaf.myNew(8);
+		DD dd5 = DDnode.myNew(1, children_dd5);
+		//System.out.println("DD5");dd5.display(); 
+		
+		//DD6
+		DD[] children_dd6 = new DD[2];
+		children_dd6[0] = DDleaf.myNew(9);
+		children_dd6[1] = DDleaf.myNew(10);
+		DD dd6 = DDnode.myNew(1, children_dd6);
+		//System.out.println("DD6");dd6.display(); 
+				
+		//DD7
+		DD[] children_dd7 = new DD[2];
+		children_dd7[0] = DDleaf.myNew(11);
+		children_dd7[1] = DDleaf.myNew(12);
+		DD dd7 = DDnode.myNew(1, children_dd7);
+		//System.out.println("DD7");dd7.display(); 
+				
+		//DD8
+		DD[] children_dd8 = new DD[2];
+		children_dd8[0] = dd4;
+		children_dd8[1] = dd5;
+		DD dd8 = DDnode.myNew(3, children_dd8);
+		dd8.getVarSet();
+				
+		//DD9
+		DD[] children_dd9 = new DD[2];
+		children_dd9[0] = dd6;
+		children_dd9[1] = dd7;
+		DD dd9 = DDnode.myNew(3, children_dd9);
+		dd9.getVarSet();
+				
+		//DD10
+		DD[] children_dd10 = new DD[3];
+		children_dd10[0] = dd3;
+		children_dd10[1] = dd8;
+		children_dd10[2] = dd9;
+		DD dd10 = DDnode.myNew(1, children_dd10);
+		System.out.println("DD10");dd10.display(); 
+		
 		/*
 		 * test OP functions 
 		 */
@@ -477,7 +521,7 @@ public class TestMain {
 		System.out.println("printing scalarized second node");
 		scalarized.display();*/
 		 
-		DD scalarized = POMDP.recursiveScalarizeMatrix(dd4);
+		DD scalarized = POMDP.recursiveScalarizeMatrix(dd10);
 		System.out.println("printing scalarized");
 		scalarized.display();
 		

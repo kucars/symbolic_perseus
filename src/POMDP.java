@@ -835,9 +835,9 @@ public class POMDP implements Serializable {
 	childs[0]=DDleaf.myNew(1);
 	childs[1]=DDleaf.myNew(0);
 	//childs[2]=DDleaf.myNew(-5);
-	rawpomdp.reward =DDnode.myNew(1, childs);
-	System.out.println("size rewardObjectives:" +rawpomdp.rewardObjectives.size());
-	rawpomdp.rewardObjectives.firstElement().display();
+	//rawpomdp.reward =DDnode.myNew(1, childs);
+	//System.out.println("size rewardObjectives:" +rawpomdp.rewardObjectives.size());
+	//rawpomdp.rewardObjectives.firstElement().display();
 	//System.exit(200);
 	 //multiply and add 
 	costObjectivesDDarray = new DD [nActions];
@@ -854,11 +854,19 @@ public class POMDP implements Serializable {
 	    actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,primeVarIndices);
 	    
 	    //----added this part to save the not scalarized reward matrix---used to be in dpBackup
-	    System.out.println("rewardObjectives:");
-	    rawpomdp.rewardObjectives.firstElement().display();
-	    System.out.println("CostObjectives:");
-	    rawpomdp.CostObjectives.get(a).display();
+	    //System.out.println("rewardObjectives:");
+	    //rawpomdp.rewardObjectives.firstElement().display();
 	    
+	    //System.out.println("CostObjectives:");
+	    //rawpomdp.CostObjectives.get(a).display();
+	    if(rawpomdp.rewardObjectives==null || rawpomdp.rewardObjectives.isEmpty()){
+	    
+	    	rawpomdp.rewardObjectives.add(DDleaf.myNew(0));
+	    	
+	    }
+	    rawpomdp.rewardObjectives.firstElement().display();
+	    //System.exit(200);
+	    	
 	    actions[a].costObj=OP.sub(rawpomdp.rewardObjectives.firstElement(),rawpomdp.CostObjectives.get(a));
 	    System.out.println("costObj:");
 	    actions[a].costObj.display();
@@ -1812,12 +1820,12 @@ public class POMDP implements Serializable {
     	 * test weights ONLY used when running TestMain.java
     	 * Otherwise should be commented
     	 */
-    	DD[] ddweights = new DD[1];
+    	/*DD[] ddweights = new DD[1];
     	DD[] children_w = new DD[2];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
-		ddweights[0]=dd1;
+		ddweights[0]=dd1;*/
 		//------------end part used for testing--------------
 		
 		List<DD> myList = new ArrayList<DD>();		
@@ -1890,46 +1898,57 @@ public class POMDP implements Serializable {
     	DD[] children = matrix.getChildren();
     	DD resultAdd = DD.zero; 
     	
-    	for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
-		{	  		  		
-    		if(children.length==ddweights[0].getChildren().length)
-    		{
+    	//for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
+    	for (int i=0; i<matrix.getChildren().length;i++)
+		{	  		resultAdd = DD.zero;   		
+    		//if(matrix.getNumLeaves()!=ddweights[0].getChildren().length)
+    		//{    			
     			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
-    			{ 		
-    				if (children[we].getChildren()!=null) 
+    			{ 	//for (int we=0; we<ddweights[0].getChildren().length;we++)
     				{
-    					//2 nodes and each node with 2 leafs
-    					/*resultAdd = DD.zero; 
-    					for (int a=0;a<children[we].getChildren().length;a++)
-    					{
-    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
-    						resultAdd = OP.add(resultAdd, resultdd);
-    					}*/
-    					
-    					/*
-    					 * i could comment upper part and just call the function recursevly here until what left is only leafs
-    					 * in the else part
-    					 */
-    					resultAdd = recursiveScalarizeMatrix(children[we]);
-    					
-    				}else 
-    				{
-    					//1 node with 2 leafs
-    					DD resultdd = OP.mult(children[we], ddweights[0].getChildren()[we]);
-    					resultAdd = OP.add(resultAdd, resultdd);
+	    				if (children[i].getChildren()!=null)//&&(children.length==ddweights[0].getChildren().length))
+	    				{
+	    					//2 nodes and each node with 2 leafs
+	    					/*resultAdd = DD.zero; 
+	    					for (int a=0;a<children[we].getChildren().length;a++)
+	    					{
+	    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
+	    						resultAdd = OP.add(resultAdd, resultdd);
+	    					}*/
+	    					
+	    					/*
+	    					 * i could comment upper part and just call the function recursevly here until what left is only leafs
+	    					 * in the else part
+	    					 */
+	    					resultAdd = recursiveScalarizeMatrix(children[i]);
+	    					
+	    				}else 
+	    				{
+	    					//1 node with 2 leafs
+	    					for (int w=0; w<ddweights[0].getChildren().length;w++)
+	    					{
+	    						DD resultdd = OP.mult(children[w], ddweights[0].getChildren()[w]);
+		    					resultAdd = OP.add(resultAdd, resultdd);
+	    					}
+	    					//break;
+	    				}
     				}
+    				
     			}else// if the weights are the same it will be only one leaf 
     			{
     				//weights are the same so one leaf
-    				DD resultdd = OP.mult(children[we], ddweights[0]);
+    				DD resultdd = OP.mult(children[i], ddweights[0]);
 					resultAdd = OP.add(resultAdd, resultdd);
     			}
     			myList.add(resultAdd);
     			
-    		}else if(children.length>ddweights[0].getChildren().length)
+    		/*}else
     		{
-    			myList.add(matrix);
-    		}
+    			DD resultdd = OP.mult(matrix, ddweights[0].getChildren()[we]);
+				resultAdd = OP.add(resultAdd, resultdd);
+    			
+    		}*/
+    		//myList.add(matrix);
     		
 		}// end loop weights 
     	
@@ -1940,7 +1959,7 @@ public class POMDP implements Serializable {
     	}
     	scalarizedAlphas = DDnode.myNew(1, children_scalarized);
 	
-    	return scalarizedAlphas;
+return scalarizedAlphas;
     }
     //---------------scalarize_alphavector_withMultipleObjectives-----------------
     /*
@@ -2942,22 +2961,12 @@ public class POMDP implements Serializable {
 	    	 * May 2018
 	    	 * scalarize the costs 
 	    	 */
-	    	//if(actions[actId].costObj.getChildren().length>1)//its not just a leaf
+	    	DD costObject_copy= DD.zero;
 	    	if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
-	    	{
-	    		for(int u=0;u<actions[actId].costObj.getChildren().length;u++)//for every child
-	    		{
-	    			if(actions[actId].costObj.getChildren()[u].getChildren()!=null)//child is not a leaf
-	    			{
-	    				//scalarize- node with 2 leafs
-	    				actions[actId].costObj.getChildren()[u].display();
-	    				actions[actId].costObj.getChildren()[u]=scalarizeAlphaMatrix(actions[actId].costObj.getChildren()[u]);
-	    				actions[actId].costObj.getChildren()[u].display();
-	    				//System.exit(200);
-	    			}
-	    		}
+	    	{	
+	    		costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
 	    	}
-	    	newAlpha = OP.addN(concatenateArray(actions[actId].costObj, newAlpha));
+	    	newAlpha = OP.addN(concatenateArray(costObject_copy, newAlpha));
 	    	newAlpha = OP.approximate(newAlpha,bellmanErr*(1-discFact)/2.0,onezero);
 	    	bellmanErr = OP.maxAll(OP.abs(OP.sub(newAlpha,prevAlpha)));
 	    	if (bellmanErr <= tolerance) 
@@ -4140,8 +4149,13 @@ public class POMDP implements Serializable {
     		actValue = 0.0;
     		// compute immediate rewards
     		//actValue = actValue + OP.factoredExpectationSparseNoMem(belState,actions[actId].rewFn);
-    		actValue = actValue + OP.factoredExpectationSparseNoMem(belState,actions[actId].costObj);
-    		
+    		DD costObject_copy= DD.zero;
+	    	if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
+	    	{	
+	    		costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
+	    	}
+    		//actValue = actValue + OP.factoredExpectationSparseNoMem(belState,actions[actId].costObj);
+    		actValue = actValue + OP.factoredExpectationSparseNoMem(belState,costObject_copy);
     		
     		// compute observation strategy
     		nextBelStates[actId].getObsStrat();
@@ -4196,8 +4210,15 @@ public class POMDP implements Serializable {
     	if(newAlpha.getVar()!=0)
     		newAlpha.setVar(1);*/
     	//newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].rewFn));
+    	
+    	DD costObject_copy= DD.zero;
+    	if(actions[bestActId].costObj.getChildren()!=null)//its not just a leaf
+    	{	
+    		costObject_copy=recursiveScalarizeMatrix(actions[bestActId].costObj);	
+    	}
 
-    	newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].costObj));
+    	//newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].costObj));
+    	newAlpha = OP.addN(concatenateArray(newAlpha,costObject_copy));
 
     	bestValue = OP.factoredExpectationSparse(belState,newAlpha);
     	// package up to return
