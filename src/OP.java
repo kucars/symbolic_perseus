@@ -428,47 +428,52 @@ class OP {
     //////////////////////////////////////////////////////
     // selectVarGreedily
     //////////////////////////////////////////////////////
-    public static int selectVarGreedily(DD[] ddArray, int[] vars) {
-
-	// estimate cost of eliminating each var
-	double bestSize = Double.POSITIVE_INFINITY;
-	int bestVar = 0;
-        for (int i=0; i<vars.length; i++) {
-            int[] newVarSet = new int[0];
-	    double sizeEstimate = 1;
-	    int nAffectedDds = 0;
-	    for (int ddId=0; ddId<ddArray.length; ddId++) {
-		if (ddArray[ddId] == null)
-		    System.out.println("ddArray[" + ddId + "] is null");
-                int[] varSet = ddArray[ddId].getVarSet();
-                if (MySet.find(varSet,vars[i]) >= 0) {
-                    newVarSet = MySet.union(varSet,newVarSet);
-		    sizeEstimate *= ddArray[ddId].getNumLeaves();
-		    nAffectedDds += 1;
+    public static int selectVarGreedily(DD[] ddArray, int[] vars) 
+    {
+		// estimate cost of eliminating each var
+		double bestSize = Double.POSITIVE_INFINITY;
+		int bestVar = 0;
+	    for (int i=0; i<vars.length; i++) 
+	    {
+	    	int[] newVarSet = new int[0];
+		    double sizeEstimate = 1;
+		    int nAffectedDds = 0;
+		    for (int ddId=0; ddId<ddArray.length; ddId++) 
+		    {
+		    	if (ddArray[ddId] == null)
+		    		System.out.println("ddArray[" + ddId + "] is null");
+	            int[] varSet = ddArray[ddId].getVarSet();
+	            if (MySet.find(varSet,vars[i]) >= 0) 
+	            {
+	                newVarSet = MySet.union(varSet,newVarSet);
+	                sizeEstimate *= ddArray[ddId].getNumLeaves();
+	                nAffectedDds += 1;
+	            }
+		    }
+	
+		    // # of affected DDs <= 1 or # of vars is <= 2
+		    if (nAffectedDds <= 1 || newVarSet.length <= 2) 
+		    {
+		    	return vars[i];
+		    }
+	
+		    // compute sizeUpperBound:
+		    // sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
+		    double sizeUpperBound = 1;
+	        for (int j=0; j<newVarSet.length; j++) 
+	        {
+	        	sizeUpperBound *= Global.varDomSize[newVarSet[j]-1];
+	        	if (sizeUpperBound >= sizeEstimate) break;
+		    }
+		    if (sizeUpperBound < sizeEstimate) sizeEstimate = sizeUpperBound;
+	
+		    // revise bestVar
+		    if (sizeUpperBound < bestSize) {
+			bestSize = sizeUpperBound;
+			bestVar = vars[i];
+		    }
 		}
-	    }
-
-	    // # of affected DDs <= 1 or # of vars is <= 2
-	    if (nAffectedDds <= 1 || newVarSet.length <= 2) {
-		return vars[i];
-	    }
-
-	    // compute sizeUpperBound:
-	    // sizeUpperBound = min(sizeEstimate, prod(varDomSize(newScope)));
-	    double sizeUpperBound = 1;
-            for (int j=0; j<newVarSet.length; j++) {
-		sizeUpperBound *= Global.varDomSize[newVarSet[j]-1];
-		if (sizeUpperBound >= sizeEstimate) break;
-	    }
-	    if (sizeUpperBound < sizeEstimate) sizeEstimate = sizeUpperBound;
-
-	    // revise bestVar
-	    if (sizeUpperBound < bestSize) {
-		bestSize = sizeUpperBound;
-		bestVar = vars[i];
-	    }
-	}
-	return bestVar;
+	    return bestVar;
     }
 
     //////////////////////////////////////////////////////

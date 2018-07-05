@@ -87,7 +87,7 @@ action nothing
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(0 0)
 endaction
 action measurewet
 	huc	(defaulthuc)
@@ -104,7 +104,7 @@ action measurewet
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(0 0)
 endaction
 // move to shop if in office and vice-versa
 // robot can get wet along the way if its raining and robot has no umbrella
@@ -161,7 +161,7 @@ action move
 		charge	(batteryOF)
 	endobserve
 	// a cost specified over post-action variables
-	costobjective	(l	(office	(0.0 0.1))
+	costobjective	(l	(office	(0.2 0.0))
 				(shop	(0.1 0.0)))
 endaction
 // robot delivers coffee to user
@@ -183,7 +183,7 @@ action delc
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(0 0)
 endaction
 // robot gets the umbrella
 action getu
@@ -273,7 +273,7 @@ action recharge
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(0 0)
 endaction	
 action dryoff
 	huc	(defaulthuc)
@@ -294,7 +294,7 @@ action dryoff
 		charge	(batteryOF)
 	endobserve
 	//i added this part to test 
-	costobjective	(1 0)
+	costobjective	(0 0)
 endaction
 
 //reward (0.5 0 0)

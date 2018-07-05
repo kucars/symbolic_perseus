@@ -28,7 +28,7 @@ public class TestMain {
 		children_dd3[1] = dd2;
 		DD dd3 = DDnode.myNew(3, children_dd3);
 		dd3.getVarSet();
-		//System.out.println("DD3");dd3.display();
+		System.out.println("DD3");dd3.display();
 		
 		
 		//DD4
@@ -79,7 +79,7 @@ public class TestMain {
 		children_dd10[1] = dd8;
 		children_dd10[2] = dd9;
 		DD dd10 = DDnode.myNew(1, children_dd10);
-		System.out.println("DD10");dd10.display(); 
+		//System.out.println("DD10");dd10.display(); 
 		
 		/*
 		 * test OP functions 
@@ -521,7 +521,7 @@ public class TestMain {
 		System.out.println("printing scalarized second node");
 		scalarized.display();*/
 		 
-		DD scalarized = POMDP.recursiveScalarizeMatrix(dd10);
+		DD scalarized = POMDP.recursiveScalarizeMatrix(dd3);
 		System.out.println("printing scalarized");
 		scalarized.display();
 		

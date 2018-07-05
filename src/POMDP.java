@@ -765,12 +765,14 @@ public class POMDP implements Serializable {
 	// set up observation variables
 	nObservations = 1;
 	obsVarsArity = new int[nObsVars];
-	for (int i=0; i<nObsVars; i++) {
+	for (int i=0; i<nObsVars; i++) 
+	{
 	    obsVars[i] = new StateVar(rawpomdp.valNames.get(i+nStateVars).size(),
 					    rawpomdp.varNames.get(i+nStateVars),
 					    i+nStateVars);
-	    for (int j=0; j<obsVars[i].arity; j++) {
-		obsVars[i].addValName(j,((String) rawpomdp.valNames.get(nStateVars+i).get(j)));
+	    for (int j=0; j<obsVars[i].arity; j++) 
+	    {
+	    	obsVars[i].addValName(j,((String) rawpomdp.valNames.get(nStateVars+i).get(j)));
 	    }
 	    obsVarsArity[i] = obsVars[i].arity;
 	    nObservations = nObservations*obsVars[i].arity;
@@ -853,16 +855,19 @@ public class POMDP implements Serializable {
 	    actions[a].buildRewTranFn();
 	    actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,primeVarIndices);
 	    
-	    //----added this part to save the not scalarized reward matrix---used to be in dpBackup
-	    //System.out.println("rewardObjectives:");
-	    //rawpomdp.rewardObjectives.firstElement().display();
-	    
-	    //System.out.println("CostObjectives:");
-	    //rawpomdp.CostObjectives.get(a).display();
-	    if(rawpomdp.rewardObjectives==null || rawpomdp.rewardObjectives.isEmpty()){
-	    
+	    /*
+	     *TODO: should add this part in case if the costobjective was not in the problem file, we set it to be zero. 
+	     */
+	    /*if(rawpomdp.CostObjectives.get(a)==null){	    
+	    	rawpomdp.CostObjectives.get(a)=DDleaf.myNew(0);
+	    }*/
+	    /*
+	     *  In case rewarobjective was not there it is set to be zero
+	     *  Note: we didn't change the keyword in the problem to be rewardObjective it is kept as reward 
+	     *  	but now it can have more than one objective 
+	     */
+	    if(rawpomdp.rewardObjectives==null || rawpomdp.rewardObjectives.isEmpty()){	    
 	    	rawpomdp.rewardObjectives.add(DDleaf.myNew(0));
-	    	
 	    }
 	    rawpomdp.rewardObjectives.firstElement().display();
 	    //System.exit(200);
@@ -1885,12 +1890,12 @@ public class POMDP implements Serializable {
     	 * test weights ONLY used when running TestMain.java
     	 * Otherwise should be commented
     	 */
-    	DD[] ddweights = new DD[1];
+    	/*DD[] ddweights = new DD[1];
     	DD[] children_w = new DD[2];
     	children_w[0] = DDleaf.myNew(1);
     	children_w[1] = DDleaf.myNew(0);
 		DD dd1 = DDnode.myNew(1, children_w);
-		ddweights[0]=dd1;
+		ddweights[0]=dd1;*/
 		//------------end part used for testing--------------
 		
 		List<DD> myList = new ArrayList<DD>();		
@@ -1930,6 +1935,7 @@ public class POMDP implements Serializable {
 	    						DD resultdd = OP.mult(children[w], ddweights[0].getChildren()[w]);
 		    					resultAdd = OP.add(resultAdd, resultdd);
 	    					}
+	    					i=matrix.getChildren().length;//i added this line so that when it reaches only leafs no need to loop for the other leaf
 	    					//break;
 	    				}
     				}
@@ -1957,7 +1963,7 @@ public class POMDP implements Serializable {
     	{
     		children_scalarized[x]=myList.get(x);
     	}
-    	scalarizedAlphas = DDnode.myNew(1, children_scalarized);
+    	scalarizedAlphas = DDnode.myNew(matrix.getVar(), children_scalarized);
 	
 return scalarizedAlphas;
     }
@@ -2931,6 +2937,8 @@ return scalarizedAlphas;
 	{
 	    newAlpha = DD.zero;
 	    bellmanErr = tolerance;
+	    DD costObject_copy= DD.zero;
+	    System.out.println("action:"+actId);
 	    for (int i=0; i<50; i++) 
 	    {
 	    	prevAlpha = newAlpha;
@@ -2939,7 +2947,7 @@ return scalarizedAlphas;
 	    	 * May 2018
 	    	 * 2nd modification: will check the newalpha if has two nested nodes will make children nodes var = 1 just parent 3
 	    	 */    	
-	    	System.out.println("actionID:"+actId+" i:"+i);
+	    	//System.out.println("actionID:"+actId+" i:"+i);
 	    	newAlpha = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlpha),primeVarIndices);
 	    	/*
 	    	 * May 2018
@@ -2961,10 +2969,12 @@ return scalarizedAlphas;
 	    	 * May 2018
 	    	 * scalarize the costs 
 	    	 */
-	    	DD costObject_copy= DD.zero;
-	    	if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
-	    	{	
-	    		costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
+	    	if(i==0)//only once is done for every action
+	    	{
+	    		if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
+	    		{	
+	    			costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
+	    		}
 	    	}
 	    	newAlpha = OP.addN(concatenateArray(costObject_copy, newAlpha));
 	    	newAlpha = OP.approximate(newAlpha,bellmanErr*(1-discFact)/2.0,onezero);
@@ -3004,7 +3014,7 @@ return scalarizedAlphas;
 	 * 1) it should look like original (compare alphavectors)
 	 * 2) test with scalarized vector and check best improvment 
 	 */
-	alphaVectors = scalarize_MOalphavector(tmpalphaVectors);
+	//alphaVectors = scalarize_MOalphavector(tmpalphaVectors);
 	
 	boundedPerseusStartFromCurrent(maxAlpha, firstStep, nSteps);
     }
