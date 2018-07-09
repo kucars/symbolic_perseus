@@ -521,7 +521,7 @@ public class TestMain {
 		System.out.println("printing scalarized second node");
 		scalarized.display();*/
 		 
-		DD scalarized = POMDP.recursiveScalarizeMatrix(dd3);
+		DD scalarized = POMDP.recursiveScalarizeMatrix2(dd3);
 		System.out.println("printing scalarized");
 		scalarized.display();
 		

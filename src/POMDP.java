@@ -1884,7 +1884,70 @@ public class POMDP implements Serializable {
 
     }
     //---------------recursiveScalarizeMatrix--------------------------------- 
+    /*
+     * this function does the following:
+     * 
+     */
     public static DD recursiveScalarizeMatrix(DD matrix)
+    {
+    	/*---------------------------------------------------
+    	 * test weights ONLY used when running TestMain.java
+    	 * Otherwise should be commented
+    	 */
+    	DD[] ddweights = new DD[1];
+    	DD[] children_w = new DD[2];
+    	children_w[0] = DDleaf.myNew(1);
+    	children_w[1] = DDleaf.myNew(0);
+		DD dd1 = DDnode.myNew(1, children_w);
+		ddweights[0]=dd1;
+		//------------end part used for testing--------------
+		
+		List<DD> myList = new ArrayList<DD>();		
+    	DD scalarizedAlphas = DD.zero;
+    	DD[] children = matrix.getChildren();
+    	DD resultAdd = DD.zero; 
+    	
+    	for (int i=0; i<matrix.getChildren().length;i++)
+		{	 
+    		resultAdd = DD.zero;   		 			
+    		if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
+    			{ 	
+	    			if (children[i].getChildren()!=null)
+	    			{
+	    				resultAdd = recursiveScalarizeMatrix(children[i]);	
+	    			}else 
+	    			{	    			
+	    				for (int w=0; w<ddweights[0].getChildren().length;w++)//1 node with 2 leafs
+	    					{
+	    						DD resultdd = OP.mult(children[w], ddweights[0].getChildren()[w]);
+		    					resultAdd = OP.add(resultAdd, resultdd);
+	    					}
+	    				i=matrix.getChildren().length;//i added this line so that when it reaches only leafs no need to loop for the other leaf
+	    			}	
+    			}else// if the weights are the same it will be only one leaf 
+    			{
+    				//weights are the same so one leaf
+    				DD resultdd = OP.mult(children[i], ddweights[0]);
+					resultAdd = OP.add(resultAdd, resultdd);
+    			}
+    		myList.add(resultAdd);
+		}// end loop weights 
+    	
+    	DD[] children_scalarized = new DD[myList.size()];
+    	for(int x=0; x<myList.size();x++)
+    	{
+    		children_scalarized[x]=myList.get(x);
+    	}
+    	scalarizedAlphas = DDnode.myNew(matrix.getVar(), children_scalarized);
+	
+    	return scalarizedAlphas;
+    }
+    //---------------recursiveScalarizeMatrix2--------------------------------- 
+    /*
+     * i override the function to do:
+     * 
+     */
+    public static DD recursiveScalarizeMatrix2(DD matrix)
     {
     	/*---------------------------------------------------
     	 * test weights ONLY used when running TestMain.java
@@ -1897,65 +1960,44 @@ public class POMDP implements Serializable {
 		DD dd1 = DDnode.myNew(1, children_w);
 		ddweights[0]=dd1;*/
 		//------------end part used for testing--------------
-		
 		List<DD> myList = new ArrayList<DD>();		
     	DD scalarizedAlphas = DD.zero;
     	DD[] children = matrix.getChildren();
     	DD resultAdd = DD.zero; 
     	
-    	//for (int we=0; we<ddweights[0].getChildren().length;we++)// take one weight at a time
     	for (int i=0; i<matrix.getChildren().length;i++)
-		{	  		resultAdd = DD.zero;   		
-    		//if(matrix.getNumLeaves()!=ddweights[0].getChildren().length)
-    		//{    			
-    			if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
-    			{ 	//for (int we=0; we<ddweights[0].getChildren().length;we++)
-    				{
-	    				if (children[i].getChildren()!=null)//&&(children.length==ddweights[0].getChildren().length))
+		{	 
+    		resultAdd = DD.zero;   		 			
+    		if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
+    			{ 	
+	    			if(children[i].getChildren()!=null)// && (children[i].getChildren().length>ddweights[0].getChildren().length))
+	    			{
+	    				resultAdd = recursiveScalarizeMatrix(children[i]);	
+	    			}else 
+	    			{	
+	    				if(children[i].getVar()==0)
 	    				{
-	    					//2 nodes and each node with 2 leafs
-	    					/*resultAdd = DD.zero; 
-	    					for (int a=0;a<children[we].getChildren().length;a++)
-	    					{
-	    						DD resultdd = OP.mult(children[we].getChildren()[a], ddweights[0].getChildren()[a]);
-	    						resultAdd = OP.add(resultAdd, resultdd);
-	    					}*/
-	    					
-	    					/*
-	    					 * i could comment upper part and just call the function recursevly here until what left is only leafs
-	    					 * in the else part
-	    					 */
-	    					resultAdd = recursiveScalarizeMatrix(children[i]);
-	    					
-	    				}else 
-	    				{
-	    					//1 node with 2 leafs
-	    					for (int w=0; w<ddweights[0].getChildren().length;w++)
+	    					for (int w=0;w<ddweights[0].getChildren().length;w++)
 	    					{
 	    						DD resultdd = OP.mult(children[w], ddweights[0].getChildren()[w]);
 		    					resultAdd = OP.add(resultAdd, resultdd);
 	    					}
-	    					i=matrix.getChildren().length;//i added this line so that when it reaches only leafs no need to loop for the other leaf
-	    					//break;
+	    				}else
+	    				{
+	    					for (int w=0;w<ddweights[0].getChildren().length;w++)
+	    					{
+	    						DD resultdd = OP.mult(children[i].getChildren()[w], ddweights[0].getChildren()[w]);
+		    					resultAdd = OP.add(resultAdd, resultdd);
+	    					}
 	    				}
-    				}
-    				
+	    			}	
     			}else// if the weights are the same it will be only one leaf 
     			{
     				//weights are the same so one leaf
     				DD resultdd = OP.mult(children[i], ddweights[0]);
 					resultAdd = OP.add(resultAdd, resultdd);
     			}
-    			myList.add(resultAdd);
-    			
-    		/*}else
-    		{
-    			DD resultdd = OP.mult(matrix, ddweights[0].getChildren()[we]);
-				resultAdd = OP.add(resultAdd, resultdd);
-    			
-    		}*/
-    		//myList.add(matrix);
-    		
+    		myList.add(resultAdd);
 		}// end loop weights 
     	
     	DD[] children_scalarized = new DD[myList.size()];
@@ -1965,7 +2007,7 @@ public class POMDP implements Serializable {
     	}
     	scalarizedAlphas = DDnode.myNew(matrix.getVar(), children_scalarized);
 	
-return scalarizedAlphas;
+    	return scalarizedAlphas;
     }
     //---------------scalarize_alphavector_withMultipleObjectives-----------------
     /*
@@ -2941,13 +2983,43 @@ return scalarizedAlphas;
 	    System.out.println("action:"+actId);
 	    for (int i=0; i<50; i++) 
 	    {
+	    	if(i==0)//only once is done for every action
+	    	{	
+	    		if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
+	    		{	
+	    			costObject_copy=recursiveScalarizeMatrix2(actions[actId].costObj);	
+	    		}
+	    	}
+	    	
+	    	/*if(actId==2)
+	    	{
+	    		System.out.println("actions[2].costObj");
+	    		int [] r =actions[actId].costObj.getVarSet();
+	    		actions[actId].costObj.display();
+	    		System.out.println("actions[2].costObj varSet");
+	    		for(int k=0; k<r.length;k++)
+	    		{
+	    			System.out.print(r[k]+" ");
+	    		}System.out.println();
+	    		
+	    		System.out.println("actions[2] scalarized costObj");
+	    		int [] x =costObject_copy.getVarSet();
+	    		costObject_copy.display();
+	    		System.out.println("costObject scalarized varSet");
+	    		for(int k=0; k<x.length;k++)
+	    		{
+	    			System.out.print(x[k]+" ");
+	    		}System.out.println();
+	    		
+	    		System.exit(200);
+	    	}*/
+	    	
 	    	prevAlpha = newAlpha;
 	    	newAlpha = OP.primeVars(newAlpha,nVars);
 	    	/*
 	    	 * May 2018
 	    	 * 2nd modification: will check the newalpha if has two nested nodes will make children nodes var = 1 just parent 3
 	    	 */    	
-	    	//System.out.println("actionID:"+actId+" i:"+i);
 	    	newAlpha = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlpha),primeVarIndices);
 	    	/*
 	    	 * May 2018
@@ -2969,13 +3041,7 @@ return scalarizedAlphas;
 	    	 * May 2018
 	    	 * scalarize the costs 
 	    	 */
-	    	if(i==0)//only once is done for every action
-	    	{
-	    		if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
-	    		{	
-	    			costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
-	    		}
-	    	}
+	    		    	
 	    	newAlpha = OP.addN(concatenateArray(costObject_copy, newAlpha));
 	    	newAlpha = OP.approximate(newAlpha,bellmanErr*(1-discFact)/2.0,onezero);
 	    	bellmanErr = OP.maxAll(OP.abs(OP.sub(newAlpha,prevAlpha)));
@@ -4162,7 +4228,7 @@ return scalarizedAlphas;
     		DD costObject_copy= DD.zero;
 	    	if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
 	    	{	
-	    		costObject_copy=recursiveScalarizeMatrix(actions[actId].costObj);	
+	    		costObject_copy=recursiveScalarizeMatrix2(actions[actId].costObj);	
 	    	}
     		//actValue = actValue + OP.factoredExpectationSparseNoMem(belState,actions[actId].costObj);
     		actValue = actValue + OP.factoredExpectationSparseNoMem(belState,costObject_copy);
@@ -4224,7 +4290,7 @@ return scalarizedAlphas;
     	DD costObject_copy= DD.zero;
     	if(actions[bestActId].costObj.getChildren()!=null)//its not just a leaf
     	{	
-    		costObject_copy=recursiveScalarizeMatrix(actions[bestActId].costObj);	
+    		costObject_copy=recursiveScalarizeMatrix2(actions[bestActId].costObj);	
     	}
 
     	//newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].costObj));
