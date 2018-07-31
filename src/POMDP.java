@@ -66,6 +66,8 @@ public class POMDP implements Serializable {
     
     public double [][] currentPointBasedValues, newPointBasedValues;
     public AlphaVector [] newAlphaMatrix;
+    public AlphaVector [] newAlphaVector;
+    public int numnewAlphaVector;
     public int numnewAlphaMatrix;
     public double bestImprovement, worstDecline;
     Writer writer;
@@ -707,6 +709,49 @@ public class POMDP implements Serializable {
 			//DDNode-------------obj1
 				//DDLeaf------------reward for s0
 				//DDLeaf------------reward for s1    	
+    //--------------recurisve swap--------------------------------------
+    /*
+     * purpose is to be used in readfromfile to swap the rewardobjectives read from the file 
+     * TODO: this function need to work for nested tree with objectives>2
+     */
+    public DD recuriveSwap(DD rewardObj)
+    {   	 
+    	DD[] children = rewardObj.getChildren();
+    	boolean d1 = false, d2=false; 
+    	DD dd1=DD.zero, dd2=DD.zero;
+		for(int z=0; z<children.length;z++)
+		{				
+			DD[] subChildren = children[z].getChildren();
+			
+			for(int r=0; r<subChildren.length;r++)
+			{				
+				if(r==0)
+				{
+					//take second node
+					dd1 = subChildren[r].getChildren()[r+1];						
+				}else//r==1
+				{
+					//take first node
+					dd2 = subChildren[r].getChildren()[r-1];
+				}		
+			}
+			
+			for(int r=0; r<subChildren.length;r++)
+			{
+				if(r==0)
+				{
+					//take second node
+					subChildren[r].getChildren()[r+1]=dd2;			
+				}else//r==1
+				{
+					//take first node
+					subChildren[r].getChildren()[r-1]=dd1;
+				}		
+			}
+		}
+    	
+    	return rewardObj;
+    }
     //-------------readFromFile------------------------------------------------------------------------------
     public void readFromFile(String fileName, boolean debb, double [] w) {
 	
@@ -831,26 +876,51 @@ public class POMDP implements Serializable {
 	 w2dd = d.getChildren()[1]; //w2dd.display();//DD of w2
 	 //w3dd = d.getChildren()[2];
 	}
-	 //System.exit(200);
-	//----------Step 3: scalarize from multiple objective into one objective------------
-	DD []childs = new DD[2];
-	childs[0]=DDleaf.myNew(1);
-	childs[1]=DDleaf.myNew(0);
-	//childs[2]=DDleaf.myNew(-5);
-	//rawpomdp.reward =DDnode.myNew(1, childs);
-	//System.out.println("size rewardObjectives:" +rawpomdp.rewardObjectives.size());
-	//rawpomdp.rewardObjectives.firstElement().display();
-	//System.exit(200);
-	 //multiply and add 
-	costObjectivesDDarray = new DD [nActions];
-	for (int a=0; a<nActions; a++) {
-		System.out.println("************action:"+a+"**************");
-		costObjectivesDD=rawpomdp.CostObjectives.get(a);
-		costObjectivesDDarray[a]= rawpomdp.CostObjectives.get(a);// this to save the multi-objective rewads (not scalarized)
-		
+	
+    /*
+     *  In case rewarobjective was not there it is set to be zero
+     *  Note: we didn't change the keyword in the problem to be rewardObjective it is kept as reward 
+     *  	but now it can have more than one objective 
+     */
+    
+    if(rawpomdp.rewardObjectives==null || rawpomdp.rewardObjectives.isEmpty()){	    
+    	rawpomdp.rewardObjectives.add(DDleaf.myNew(0));
+    }
+    System.out.println("rawpomdp.rewardObjectives");
+    rawpomdp.rewardObjectives.firstElement().display();
+    
+    //swap to match the scalarization 
+    DD rewardObj = DD.zero;
+    if(rawpomdp.rewardObjectives.firstElement().getVar()!=0)
+    {
+    	if(rawpomdp.rewardObjectives.firstElement().getChildren()!=null)
+    		{
+    		//TODO: make this function general not just for coffee problem 
+    		rewardObj = recuriveSwap(rawpomdp.rewardObjectives.firstElement());
+    		}
+    	
+    }
+    System.out.println("rewardObj");
+    rewardObj.display();
+    //rawpomdp.rewardObjectives.firstElement().display();
+    //System.exit(200);
+	for (int a=0; a<nActions; a++) 
+	{
+		//transition and observation functions
 	    actions[a] = new Action(rawpomdp.actNames.get(a));
 	    actions[a].addTransFn(rawpomdp.actTransitions.get(a));
 	    actions[a].addObsFn(rawpomdp.actObserve.get(a));
+	    
+	    //multiple objective 
+	    actions[a].costObj=OP.sub(rawpomdp.rewardObjectives.firstElement(),rawpomdp.CostObjectives.get(a));
+	    actions[a].buildcostObjTranFn();
+	    actions[a].costObj= OP.addMultVarElim(actions[a].costObjTransFn,primeVarIndices);
+ 
+	    //scalarize 
+	    /*rawpomdp.reward = recursiveScalarizeMatrix2(rawpomdp.rewardObjectives.firstElement());
+	    rawpomdp.actCosts.add(a, recursiveScalarizeMatrix2(rawpomdp.CostObjectives.get(a)));*/
+	    
+	    //single objective 
 	    actions[a].rewFn = OP.sub(rawpomdp.reward,rawpomdp.actCosts.get(a));
 	    actions[a].buildRewTranFn();
 	    actions[a].rewFn = OP.addMultVarElim(actions[a].rewTransFn,primeVarIndices);
@@ -861,31 +931,10 @@ public class POMDP implements Serializable {
 	    /*if(rawpomdp.CostObjectives.get(a)==null){	    
 	    	rawpomdp.CostObjectives.get(a)=DDleaf.myNew(0);
 	    }*/
-	    /*
-	     *  In case rewarobjective was not there it is set to be zero
-	     *  Note: we didn't change the keyword in the problem to be rewardObjective it is kept as reward 
-	     *  	but now it can have more than one objective 
-	     */
-	    if(rawpomdp.rewardObjectives==null || rawpomdp.rewardObjectives.isEmpty()){	    
-	    	rawpomdp.rewardObjectives.add(DDleaf.myNew(0));
-	    }
-	    rawpomdp.rewardObjectives.firstElement().display();
-	    //System.exit(200);
-	    	
-	    actions[a].costObj=OP.sub(rawpomdp.rewardObjectives.firstElement(),rawpomdp.CostObjectives.get(a));
-	    System.out.println("costObj:");
-	    actions[a].costObj.display();
-	    actions[a].buildcostObjTranFn();
-	    actions[a].costObj= OP.addMultVarElim(actions[a].costObjTransFn,primeVarIndices);
-	    System.out.println("costObj:");
-	    actions[a].costObj.display();
-	    //actions[a].costObj.setVar(1);
-	    //actions[a].costObj.getVarSet();
- 
+	    
 	    // find stochastic transitions (and deterministic varMappings)
 	    // not done yet - where is this used? 
 	}
-	//System.exit(200);
 	// discount factor
 	discFact = rawpomdp.discount.getVal();
 	
@@ -1970,10 +2019,10 @@ public class POMDP implements Serializable {
     		resultAdd = DD.zero;   		 			
     		if((ddweights[0].getChildren()!=null)&&(ddweights[0].getChildren().length>1))// if the weights are different 
     			{ 	
-	    			if(children[i].getChildren()!=null)// && (children[i].getChildren().length>ddweights[0].getChildren().length))
+	    			if((children[i].getChildren()!=null) && (children[i].getChildren()[0].getVar()!=0))    			
 	    			{
-	    				resultAdd = recursiveScalarizeMatrix(children[i]);	
-	    			}else 
+	    				resultAdd = recursiveScalarizeMatrix2(children[i]);	
+	    			}else
 	    			{	
 	    				if(children[i].getVar()==0)
 	    				{
@@ -2963,7 +3012,8 @@ public class POMDP implements Serializable {
 	 */
    public void boundedPerseus(int nIterations, int maxAlpha, int firstStep, int nSteps) {
 	DD newAlpha,prevAlpha;
-	double bellmanErr;
+	DD newAlphaMatrix,prevAlphaMatrix;
+	double bellmanErr, bellmanErrMatrix;
 	double [] onezero = {0};
 	boolean dominated;
 	double steptolerance;
@@ -2972,17 +3022,29 @@ public class POMDP implements Serializable {
 
 	maxAlphaSetSize=maxAlpha;
 
+	numnewAlphaVector = 0;
 	numnewAlphaMatrix = 0;
+	
+	//Equation 
+	/*
+	 * this equation from SYmbolic Perseus algorithm 
+	 * \alpha^{*}_{a} = r_{a} + \gamma \sum_{z} T^{a,z} argmax_{\alpha\in\aleph}b^{a}_{z}.\alpha
+	 */
 	
 	// this is done in pureStrategies now- still to do
 	for (int actId=0; actId<nActions; actId++) 
 	{
 	    newAlpha = DD.zero;
+	    newAlphaMatrix = DD.zero;
+	    		
 	    bellmanErr = tolerance;
+	    bellmanErrMatrix = tolerance;
 	    DD costObject_copy= DD.zero;
 	    System.out.println("action:"+actId);
 	    for (int i=0; i<50; i++) 
 	    {
+	    	System.out.println("i:"+i);
+	    	//scalarize costobjective 
 	    	if(i==0)//only once is done for every action
 	    	{	
 	    		if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
@@ -2990,61 +3052,44 @@ public class POMDP implements Serializable {
 	    			costObject_copy=recursiveScalarizeMatrix2(actions[actId].costObj);	
 	    		}
 	    	}
-	    	
-	    	/*if(actId==2)
-	    	{
-	    		System.out.println("actions[2].costObj");
-	    		int [] r =actions[actId].costObj.getVarSet();
-	    		actions[actId].costObj.display();
-	    		System.out.println("actions[2].costObj varSet");
-	    		for(int k=0; k<r.length;k++)
-	    		{
-	    			System.out.print(r[k]+" ");
-	    		}System.out.println();
-	    		
-	    		System.out.println("actions[2] scalarized costObj");
-	    		int [] x =costObject_copy.getVarSet();
-	    		costObject_copy.display();
-	    		System.out.println("costObject scalarized varSet");
-	    		for(int k=0; k<x.length;k++)
-	    		{
-	    			System.out.print(x[k]+" ");
-	    		}System.out.println();
-	    		
-	    		System.exit(200);
-	    	}*/
-	    	
+	    	/*
+	    	 * using scalarized alphamatrix to get alphavector 
+	    	 */
 	    	prevAlpha = newAlpha;
-	    	newAlpha = OP.primeVars(newAlpha,nVars);
-	    	/*
-	    	 * May 2018
-	    	 * 2nd modification: will check the newalpha if has two nested nodes will make children nodes var = 1 just parent 3
-	    	 */    	
-	    	newAlpha = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlpha),primeVarIndices);
-	    	/*
-	    	 * May 2018
-	    	 * first modficiation: add the if statement 
-	    	 */
-	    	/*if(newAlpha.getVar()!=0 && newAlpha.getChildren()!=null)
-	    	{
-	    		for(int x=0; x<newAlpha.getChildren().length;x++)
-	    		{
-	    			if(newAlpha.getChildren()[x].getVar()!=0)
-	    				newAlpha.getChildren()[x].setVar(1);
-	    		}
-	    	}*/
-	    	/*if(newAlpha.getVar()!=0)
-	    		newAlpha.setVar(1);*/
-	    	
-	    	//newAlpha = OP.addN(concatenateArray(actions[actId].rewFn, newAlpha));
-	    	/*
-	    	 * May 2018
-	    	 * scalarize the costs 
-	    	 */
-	    		    	
+	    	newAlpha = OP.primeVars(newAlpha,nVars);   	
+	    	newAlpha = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlpha),primeVarIndices);	    		    	
 	    	newAlpha = OP.addN(concatenateArray(costObject_copy, newAlpha));
 	    	newAlpha = OP.approximate(newAlpha,bellmanErr*(1-discFact)/2.0,onezero);
 	    	bellmanErr = OP.maxAll(OP.abs(OP.sub(newAlpha,prevAlpha)));
+	    	
+	    	/*
+	    	 * using alphamatrix
+	    	 */	   
+	    	prevAlphaMatrix = newAlphaMatrix;
+	    	newAlphaMatrix = OP.primeVars(newAlphaMatrix,nVars);
+	    	if(newAlphaMatrix.getChildren()!=null)
+	    	{	//newAlphaMatrix.display();
+	    		DD[] newAlphaMatrix_childs = getDDperObj(newAlphaMatrix); 
+		    	DD[] newAlphaMatrix_childs_temp = new DD[newAlphaMatrix_childs.length];
+		    	for(int x=0; x<newAlphaMatrix_childs.length;x++)
+		    	{
+		    		newAlphaMatrix_childs_temp[x] = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlphaMatrix_childs[x]),primeVarIndices);			    		
+		    	}
+		    	
+		    	newAlphaMatrix = setDDperObj(newAlphaMatrix_childs_temp,newAlphaMatrix.getChildren().length);
+	    	}else
+	    	{
+	    		newAlphaMatrix = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlphaMatrix),primeVarIndices);
+	    		
+	    	}
+	    	
+	    	newAlphaMatrix = OP.addN(concatenateArray(actions[actId].costObj, newAlphaMatrix));
+    		newAlphaMatrix = OP.approximate(newAlphaMatrix,bellmanErrMatrix*(1-discFact)/2.0,onezero);
+	    		    		    	
+	    	//newAlphaMatrix = OP.addN(concatenateArray(actions[actId].costObj, newAlphaMatrix));
+	    	//newAlphaMatrix = OP.approximate(newAlphaMatrix,bellmanErrMatrix*(1-discFact)/2.0,onezero);
+	    	bellmanErrMatrix = OP.maxAll(OP.abs(OP.sub(newAlphaMatrix,prevAlphaMatrix)));
+	    	
 	    	if (bellmanErr <= tolerance) 
 	    		break;
 	    	Global.newHashtables();
@@ -3084,7 +3129,65 @@ public class POMDP implements Serializable {
 	
 	boundedPerseusStartFromCurrent(maxAlpha, firstStep, nSteps);
     }
-   
+   //--------------------------------------------------
+   /*
+    * Purpose of this function is cut the Matrix into sub trees, one for each objective 
+    * TODO: this has to be more general - and recursive for big nested trees and number of objectives
+    */
+   	public DD[] getDDperObj(DD alphaMatrix)
+   	{
+   		DD[] newAlphaMatrix_childs=new DD[nObj];
+   		DD dd = DD.zero;
+   		int index = 0; 
+   		while(index<nObj)
+   		{
+   			DD [] tempDDarray = new DD [alphaMatrix.getChildren().length];
+   			for (int x=0; x<alphaMatrix.getChildren().length;x++)
+   			{	
+   				
+   				if(alphaMatrix.getChildren()!=null)
+   				{
+		   			DD children = alphaMatrix.getChildren()[x];
+		   			dd=children.getChildren()[index];
+		   			tempDDarray[x]=dd;
+	   		
+   				}
+   			}
+   			newAlphaMatrix_childs[index]= DDnode.myNew(alphaMatrix.getVar(),tempDDarray);
+   			index++;
+   		}
+   		//newAlphaMatrix_childs[0].display();
+   		//newAlphaMatrix_childs[1].display();
+   		//System.exit(200);
+   		return newAlphaMatrix_childs;
+   		
+   	}
+   	
+   	/*
+   	 * purpose of this function is to put the trees perobj back together
+   	 */
+   	
+   	public DD setDDperObj(DD[] alphaMatrix, int noChilds)
+   	{
+   		System.out.println("noChilds: "+noChilds);
+   		DD newAlphaMatrix = DDnode.zero;
+   		DD[] alphamatrix_children = new DD[noChilds];
+   		int index =0;
+   		while(index<noChilds)//3
+   		{
+   			DD [] tempDDarray = new DD [alphaMatrix.length];
+	   		for (int i=0; i<alphaMatrix.length;i++)//2
+	   		{
+	   			
+	   			tempDDarray[i]= alphaMatrix[i].getChildren()[index];	
+	   		}
+	   		alphamatrix_children[index]= DDnode.myNew(alphaMatrix[0].getChildren()[0].getVar(), tempDDarray);
+	   		index++;
+   		}
+   		newAlphaMatrix= DDnode.myNew(alphaMatrix[0].getVar(), alphamatrix_children);
+   		return newAlphaMatrix; 
+   	}
+   	//-------------------------------------------
     public DD[]  getAlphaVectors() {
 	return alphaVectors;
     } 
@@ -4271,20 +4374,7 @@ public class POMDP implements Serializable {
     	
     	newAlpha =  OP.addMultVarElim(concatenateArray(actions[bestActId].transFn, actions[bestActId].obsFn,nextValFn), 
 				     concatenateArray(primeVarIndices,primeObsIndices));
-    	/*
-    	 * May 2018
-    	 * first modification: added this line 
-    	 */
-    	/*if(newAlpha.getVar()!=0 && newAlpha.getChildren()!=null)
-    	{
-    		for(int x=0; x<newAlpha.getChildren().length;x++)
-    		{
-    			if(newAlpha.getChildren()[x].getVar()!=0)
-    				newAlpha.getChildren()[x].setVar(1);
-    		}
-    	}
-    	if(newAlpha.getVar()!=0)
-    		newAlpha.setVar(1);*/
+
     	//newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].rewFn));
     	
     	DD costObject_copy= DD.zero;
