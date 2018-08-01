@@ -3067,7 +3067,7 @@ public class POMDP implements Serializable {
 	    	 */	   
 	    	prevAlphaMatrix = newAlphaMatrix;
 	    	newAlphaMatrix = OP.primeVars(newAlphaMatrix,nVars);
-	    	if(newAlphaMatrix.getChildren()!=null)
+	    	/*if(newAlphaMatrix.getChildren()!=null)
 	    	{	//newAlphaMatrix.display();
 	    		DD[] newAlphaMatrix_childs = getDDperObj(newAlphaMatrix); 
 		    	DD[] newAlphaMatrix_childs_temp = new DD[newAlphaMatrix_childs.length];
@@ -3077,7 +3077,7 @@ public class POMDP implements Serializable {
 		    	}
 		    	
 		    	newAlphaMatrix = setDDperObj(newAlphaMatrix_childs_temp,newAlphaMatrix.getChildren().length);
-	    	}else
+	    	}else*/
 	    	{
 	    		newAlphaMatrix = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlphaMatrix),primeVarIndices);
 	    		

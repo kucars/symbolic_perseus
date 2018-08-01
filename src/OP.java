@@ -1260,6 +1260,10 @@ class OP {
     //////////////////////////////////////////////////////
     // addMultarElim (summout variables from a product of DDs using variable elimincation)
     //////////////////////////////////////////////////////
+    /*
+     * The addMultVarElim function multiplies two DDs together and then eliminates a set of variables.
+     * So, to do a value iteration update, you multiply Pr(x'|x,a) by V(x) and then eliminate x to give V(x') 
+     */
     public static DD addMultVarElim(DD[] dds, int[] vars) {
 
 	// check if any of the dds are zero
