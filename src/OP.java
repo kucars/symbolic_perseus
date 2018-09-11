@@ -1329,12 +1329,14 @@ class OP {
 
 	    // multiply together trees that depend on var
 	    DD newDd = DD.one;
-	    for (int ddId=0; ddId<dds.length; ddId++) {
-		if (MySet.find(dds[ddId].getVarSet(),bestVar) >= 0) {
-		    newDd = OP.mult(newDd,dds[ddId]);
-		    dds = DDcollection.removeIth(dds,ddId);
-		    ddId--;
-		}
+	    for (int ddId=0; ddId<dds.length; ddId++) 
+	    {
+			if (MySet.find(dds[ddId].getVarSet(),bestVar) >= 0) 
+			{
+			    newDd = OP.mult(newDd,dds[ddId]);
+			    dds = DDcollection.removeIth(dds,ddId);
+			    ddId--;
+			}
 	    }
 
 	    // sumout bestVar from newDd
@@ -1950,11 +1952,12 @@ class OP {
 	// root is variable that must be restricted
 	int index = MySet.find(config[0],dd.getVar());
 	if (index >= 0) {
+		
 	    int[][] restConfig = Config.removeIth(config,index);
                     
 	    // terminate early
 	    if (config[0].length == 0)
-		return dd.getChildren()[config[1][index]-1];
+	    	{return dd.getChildren()[config[1][index]-1];}
                     
 	    // recurse
 	    /*
@@ -1970,6 +1973,7 @@ class OP {
 	    	}
 	    		
 	    	return OP.restrict(d1,restConfig);*/
+	    	//System.out.println(config[1][index]-1);
 		return OP.restrict(dd.getChildren()[config[1][index]-1],restConfig);
 		}
 	}

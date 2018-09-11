@@ -609,8 +609,7 @@ public class ParseSPUDD {
 						
 	    // parse cpts
 	    while (true) 
-	    {
-								
+	    {						
 	    	// endaction
 	    	stream.nextToken();
 	    	if (stream.sval.compareTo("endaction") == 0) break;

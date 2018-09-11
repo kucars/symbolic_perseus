@@ -714,39 +714,42 @@ public class POMDP implements Serializable {
      * purpose is to be used in readfromfile to swap the rewardobjectives read from the file 
      * TODO: this function need to work for nested tree with objectives>2
      */
+    
     public DD recuriveSwap(DD rewardObj)
     {   	 
     	DD[] children = rewardObj.getChildren();
     	boolean d1 = false, d2=false; 
     	DD dd1=DD.zero, dd2=DD.zero;
 		for(int z=0; z<children.length;z++)
-		{				
-			DD[] subChildren = children[z].getChildren();
-			
-			for(int r=0; r<subChildren.length;r++)
-			{				
-				if(r==0)
-				{
-					//take second node
-					dd1 = subChildren[r].getChildren()[r+1];						
-				}else//r==1
-				{
-					//take first node
-					dd2 = subChildren[r].getChildren()[r-1];
-				}		
-			}
-			
-			for(int r=0; r<subChildren.length;r++)
+		{	if (children[z].getChildren()!=null)
 			{
-				if(r==0)
+				DD[] subChildren = children[z].getChildren();
+				
+				for(int r=0; r<subChildren.length;r++)
+				{				
+					if(r==0)
+					{
+						//take second node
+						dd1 = subChildren[r].getChildren()[r+1];						
+					}else//r==1
+					{
+						//take first node
+						dd2 = subChildren[r].getChildren()[r-1];
+					}		
+				}
+				
+				for(int r=0; r<subChildren.length;r++)
 				{
-					//take second node
-					subChildren[r].getChildren()[r+1]=dd2;			
-				}else//r==1
-				{
-					//take first node
-					subChildren[r].getChildren()[r-1]=dd1;
-				}		
+					if(r==0)
+					{
+						//take second node
+						subChildren[r].getChildren()[r+1]=dd2;			
+					}else//r==1
+					{
+						//take first node
+						subChildren[r].getChildren()[r-1]=dd1;
+					}		
+				}
 			}
 		}
     	
@@ -889,8 +892,9 @@ public class POMDP implements Serializable {
     System.out.println("rawpomdp.rewardObjectives");
     rawpomdp.rewardObjectives.firstElement().display();
     
+    
     //swap to match the scalarization 
-    DD rewardObj = DD.zero;
+    /*DD rewardObj = DD.zero;
     if(rawpomdp.rewardObjectives.firstElement().getVar()!=0)
     {
     	if(rawpomdp.rewardObjectives.firstElement().getChildren()!=null)
@@ -899,9 +903,10 @@ public class POMDP implements Serializable {
     		rewardObj = recuriveSwap(rawpomdp.rewardObjectives.firstElement());
     		}
     	
-    }
-    System.out.println("rewardObj");
-    rewardObj.display();
+    }*/
+    //System.out.println("rewardObj");
+    //rewardObj.display();
+    //System.exit(200);
     //rawpomdp.rewardObjectives.firstElement().display();
     //System.exit(200);
 	for (int a=0; a<nActions; a++) 
@@ -3040,18 +3045,54 @@ public class POMDP implements Serializable {
 	    bellmanErr = tolerance;
 	    bellmanErrMatrix = tolerance;
 	    DD costObject_copy= DD.zero;
+	    DD scalrizedSwaped = DD.zero;
 	    System.out.println("action:"+actId);
 	    for (int i=0; i<50; i++) 
 	    {
 	    	System.out.println("i:"+i);
 	    	//scalarize costobjective 
 	    	if(i==0)//only once is done for every action
-	    	{	
+	    	{	actions[actId].costObj.display();
 	    		if(actions[actId].costObj.getChildren()!=null)//its not just a leaf
 	    		{	
 	    			costObject_copy=recursiveScalarizeMatrix2(actions[actId].costObj);	
 	    		}
+	    		costObject_copy.display();
+	    		//System.exit(200);
+	    		//TODO: need to be generalized 
+	    		
+	    		/*if (costObject_copy.getChildren()!=null)
+	    		{
+	    			if(costObject_copy.getChildren()[0].getChildren()!=null)
+	    			{
+	    				DD [] childs = new DD [costObject_copy.getChildren()[0].getChildren().length];
+			    		for(int x=0; x<childs.length;x++)
+			    		{
+			    			DD children [] = new DD[costObject_copy.getChildren().length];
+			    			for(int y=0; y<children.length;y++)
+			    			{
+			    				DD node = costObject_copy.getChildren()[y].getChildren()[x];
+			    				children[y]= node;
+			    			}
+			    			childs[x] = DDnode.myNew(costObject_copy.getVar(),children);
+			    		}
+			    		scalrizedSwaped = DDnode.myNew(costObject_copy.getChildren()[0].getVar(),childs);
+			    		
+			    		scalrizedSwaped.display();
+			    		
+	    			}
+		    		
+	    		}*/
+	    		
+	    		//scalrizedSwaped= OP.swapVars(scalrizedSwaped, costObject_copy.getConfig());
+	    		//scalrizedSwaped.display();
+	    		//costObject_copy = scalrizedSwaped;
+	    		
+	    		
 	    	}
+	    	
+	    	
+	    	//System.exit(200);
 	    	/*
 	    	 * using scalarized alphamatrix to get alphavector 
 	    	 */
@@ -3064,7 +3105,9 @@ public class POMDP implements Serializable {
 	    	
 	    	/*
 	    	 * using alphamatrix
-	    	 */	   
+	    	 */
+	    	
+	    	
 	    	prevAlphaMatrix = newAlphaMatrix;
 	    	newAlphaMatrix = OP.primeVars(newAlphaMatrix,nVars);
 	    	/*if(newAlphaMatrix.getChildren()!=null)
@@ -3078,10 +3121,11 @@ public class POMDP implements Serializable {
 		    	
 		    	newAlphaMatrix = setDDperObj(newAlphaMatrix_childs_temp,newAlphaMatrix.getChildren().length);
 	    	}else*/
-	    	{
-	    		newAlphaMatrix = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlphaMatrix),primeVarIndices);
+	    	//{
+
+	    	newAlphaMatrix = OP.addMultVarElim(concatenateArray(ddDiscFact,actions[actId].transFn,newAlphaMatrix),primeVarIndices);
 	    		
-	    	}
+	    	//}
 	    	
 	    	newAlphaMatrix = OP.addN(concatenateArray(actions[actId].costObj, newAlphaMatrix));
     		newAlphaMatrix = OP.approximate(newAlphaMatrix,bellmanErrMatrix*(1-discFact)/2.0,onezero);
@@ -4333,6 +4377,28 @@ public class POMDP implements Serializable {
 	    	{	
 	    		costObject_copy=recursiveScalarizeMatrix2(actions[actId].costObj);	
 	    	}
+	    	/*DD scalrizedSwaped = DD.zero;
+	    	if (costObject_copy.getChildren()!=null)
+    		{
+    			if(costObject_copy.getChildren()[0].getChildren()!=null)
+    			{
+    				DD [] childs = new DD [costObject_copy.getChildren()[0].getChildren().length];
+		    		for(int x=0; x<childs.length;x++)
+		    		{
+		    			DD children [] = new DD[costObject_copy.getChildren().length];
+		    			for(int y=0; y<children.length;y++)
+		    			{
+		    				DD node = costObject_copy.getChildren()[y].getChildren()[x];
+		    				children[y]= node;
+		    			}
+		    			childs[x] = DDnode.myNew(costObject_copy.getVar(),children);
+		    		}
+		    		scalrizedSwaped = DDnode.myNew(costObject_copy.getChildren()[0].getVar(),childs);
+		    		
+		    		scalrizedSwaped.display();
+    			}
+	    		
+    		}*/
     		//actValue = actValue + OP.factoredExpectationSparseNoMem(belState,actions[actId].costObj);
     		actValue = actValue + OP.factoredExpectationSparseNoMem(belState,costObject_copy);
     		
@@ -4382,6 +4448,28 @@ public class POMDP implements Serializable {
     	{	
     		costObject_copy=recursiveScalarizeMatrix2(actions[bestActId].costObj);	
     	}
+    	/*DD scalrizedSwaped = DD.zero;
+    	if (costObject_copy.getChildren()!=null)
+		{
+			if(costObject_copy.getChildren()[0].getChildren()!=null)
+			{
+				DD [] childs = new DD [costObject_copy.getChildren()[0].getChildren().length];
+	    		for(int x=0; x<childs.length;x++)
+	    		{
+	    			DD children [] = new DD[costObject_copy.getChildren().length];
+	    			for(int y=0; y<children.length;y++)
+	    			{
+	    				DD node = costObject_copy.getChildren()[y].getChildren()[x];
+	    				children[y]= node;
+	    			}
+	    			childs[x] = DDnode.myNew(costObject_copy.getVar(),children);
+	    		}
+	    		scalrizedSwaped = DDnode.myNew(costObject_copy.getChildren()[0].getVar(),childs);
+	    		
+	    		scalrizedSwaped.display();
+			}
+    		
+		}*/
 
     	//newAlpha = OP.addN(concatenateArray(newAlpha,actions[bestActId].costObj));
     	newAlpha = OP.addN(concatenateArray(newAlpha,costObject_copy));
